@@ -1,4 +1,3 @@
-import OpenAI from "openai";
 import { buildRecommendMessages } from "../prompts/recommend";
 import { scaleAllocations } from "../budget";
 import {
@@ -10,10 +9,65 @@ import {
 import { getSupabaseAdmin } from "../supabase/admin";
 import { resolveBudgetInr } from "../budget";
 
-function getOpenAI() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
-  return new OpenAI({ apiKey });
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
+
+function getGeminiApiKey() {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  if (!apiKey) throw new Error("Missing GEMINI_API_KEY (or GOOGLE_API_KEY)");
+  return apiKey;
+}
+
+function extractTextFromGeminiResponse(payload: unknown): string {
+  const data = payload as {
+    candidates?: Array<{
+      content?: {
+        parts?: Array<{ text?: string }>;
+      };
+    }>;
+  };
+  const parts = data.candidates?.[0]?.content?.parts ?? [];
+  return parts.map((p) => p.text ?? "").join("");
+}
+
+function extractJsonString(raw: string): string {
+  const trimmed = raw.trim();
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenced?.[1]) return fenced[1].trim();
+  const first = trimmed.indexOf("{");
+  const last = trimmed.lastIndexOf("}");
+  if (first >= 0 && last > first) return trimmed.slice(first, last + 1);
+  return trimmed;
+}
+
+async function callGeminiGenerate(system: string, user: string): Promise<string> {
+  const apiKey = getGeminiApiKey();
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-goog-api-key": apiKey,
+    },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      generationConfig: {
+        temperature: 0.4,
+        responseMimeType: "application/json",
+      },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => "");
+    throw new Error(`Gemini request failed: ${response.status} ${errText}`);
+  }
+
+  const payload = (await response.json()) as unknown;
+  const text = extractTextFromGeminiResponse(payload);
+  if (!text) throw new Error("Empty Gemini response");
+  return text;
 }
 
 function normalizeCategory(category: string): string {
@@ -41,25 +95,12 @@ export async function callLLMForRecommendations(
   intake: IntakeInput,
   retryError?: string
 ): Promise<RecommendationItem[]> {
-  const openai = getOpenAI();
   const { system, user, budgetInr } = buildRecommendMessages(intake, retryError);
-
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    temperature: 0.4,
-  });
-
-  const content = completion.choices[0]?.message?.content;
-  if (!content) throw new Error("Empty LLM response");
+  const content = await callGeminiGenerate(system, user);
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(extractJsonString(content));
   } catch {
     throw new Error("LLM returned invalid JSON");
   }
@@ -147,32 +188,19 @@ export async function streamLLMAndPersist(
 
   const intake = parsed.data;
   const budgetInr = resolveBudgetInr(intake.budget_bracket);
-  const openai = getOpenAI();
   const { system, user } = buildRecommendMessages(intake);
 
-  const stream = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    response_format: { type: "json_object" },
-    stream: true,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    temperature: 0.4,
-  });
-
-  let fullContent = "";
-  for await (const chunk of stream) {
-    const delta = chunk.choices[0]?.delta?.content ?? "";
-    if (delta) {
-      fullContent += delta;
-      onToken(delta);
-    }
+  // Gemini free-tier endpoint doesn't support token streaming in this implementation,
+  // so we simulate incremental UI updates by chunking the final JSON text.
+  const fullContent = await callGeminiGenerate(system, user);
+  const chunks = fullContent.match(/.{1,40}/g) ?? [fullContent];
+  for (const chunk of chunks) {
+    if (chunk) onToken(chunk);
   }
 
   let recommendations: RecommendationItem[];
   try {
-    const json = JSON.parse(fullContent);
+    const json = JSON.parse(extractJsonString(fullContent));
     const result = recommendationsResponseSchema.safeParse(json);
     if (!result.success) {
       recommendations = await callLLMForRecommendations(intake, result.error.message);

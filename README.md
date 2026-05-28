@@ -5,7 +5,7 @@ A Next.js 14 slice for Indian couples: multi-step intake, AI budget recommendati
 ## Features
 
 - **4-step intake form** — wedding date, guests, city/venue, budget bracket (₹), top 2 priorities
-- **AI recommendations** — `POST /api/recommend` calls OpenAI with structured JSON output; optional SSE streaming with typing effect
+- **AI recommendations** — `POST /api/recommend` calls Gemini with structured JSON output; optional SSE streaming with typing effect
 - **Persisted plans** — Supabase Postgres; reload via `GET /api/recommendations/[id]` (no client-side Supabase)
 - **Budget tracker** — per-category allocations, spent, balance; log payments via `POST /api/payments`
 
@@ -13,7 +13,7 @@ A Next.js 14 slice for Indian couples: multi-step intake, AI budget recommendati
 
 - Next.js 14 (App Router)
 - Supabase (Postgres)
-- OpenAI `gpt-4o-mini`
+- Gemini `gemini-flash-latest` (override with `GEMINI_MODEL`)
 - Tailwind CSS + shadcn-style UI components
 - Zod validation
 
@@ -21,7 +21,7 @@ A Next.js 14 slice for Indian couples: multi-step intake, AI budget recommendati
 
 - Node.js 18+
 - [Supabase](https://supabase.com) project
-- [OpenAI](https://platform.openai.com) API key
+- [Google AI Studio](https://aistudio.google.com) API key
 
 ## Setup
 
@@ -78,7 +78,7 @@ supabase/migrations/
 ## Manual test checklist
 
 - Complete intake → recommendations appear on plan page
-- Refresh `/plan/[id]` → same data, no new OpenAI request
+- Refresh `/plan/[id]` → same data, no new LLM request
 - Log payment → budget summary updates
 - Invalid payment category → 400 error
 
