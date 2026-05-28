@@ -1,101 +1,84 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Sparkles, IndianRupee, Camera, ArrowRight } from "lucide-react";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <main className="min-h-screen flex flex-col">
+      <header className="border-b border-border/60 bg-background/80 backdrop-blur sticky top-0 z-10">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+          <span className="font-serif text-2xl text-gold">WeddingBloom</span>
+          <nav className="hidden md:flex gap-8 text-sm text-muted-foreground">
+            <Link href="/intake" className="hover:text-foreground">
+              Planning
+            </Link>
+            <Link href="/intake" className="hover:text-foreground">
+              Budget
+            </Link>
+          </nav>
+          <Link href="/intake">
+            <Button variant="gold" size="lg">
+              Begin intake
+            </Button>
+          </Link>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </header>
+
+      <section className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center max-w-4xl mx-auto">
+        <p className="text-xs uppercase tracking-[0.25em] text-accent mb-4">Nocturnal Elegance</p>
+        <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl leading-tight mb-6">
+          Craft your <span className="text-gold italic">eternal</span> celebration
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mb-10">
+          AI-powered budget intelligence, curated vendor insights, and real-time payment tracking —
+          designed for modern Indian weddings.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link href="/intake">
+            <Button variant="gold" size="xl" className="min-w-[220px]">
+              Start planning
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </Link>
+          <Link href="/intake">
+            <Button variant="outline" size="xl">
+              Explore features
+            </Button>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 w-full max-w-3xl text-left">
+          {[
+            {
+              icon: Sparkles,
+              title: "AI Concierge",
+              desc: "Personalized vendor categories with budget allocation in ₹.",
+            },
+            {
+              icon: IndianRupee,
+              title: "Budget Tracker",
+              desc: "Visualize spend by category and log payments in real time.",
+            },
+            {
+              icon: Camera,
+              title: "Priority-first",
+              desc: "Your top 2 priorities get heavier budget weighting.",
+            },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="card-luxury p-6 space-y-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                <Icon className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="font-semibold">{title}</h3>
+              <p className="text-sm text-muted-foreground">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
+        © 2026 WeddingBloom · Crafted for Eternal Elegance
       </footer>
-    </div>
+    </main>
   );
 }

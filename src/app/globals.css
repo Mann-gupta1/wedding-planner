@@ -2,26 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 4%;
+    --foreground: 40 30% 96%;
+    --card: 0 0% 8%;
+    --card-foreground: 40 30% 96%;
+    --primary: 43 74% 52%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 40 20% 88%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 40 10% 62%;
+    --accent: 168 45% 38%;
+    --accent-foreground: 40 30% 96%;
+    --destructive: 0 72% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 16%;
+    --ring: 43 74% 52%;
+    --radius: 0.875rem;
+    --gold: 43 74% 52%;
+    --gold-glow: 43 90% 60%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(43 74% 52% / 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, hsl(168 45% 38% / 0.08), transparent);
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .font-serif-display {
+    font-family: var(--font-playfair), Georgia, serif;
+  }
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+  .bg-gold {
+    background-color: hsl(var(--gold));
+  }
+  .border-gold {
+    border-color: hsl(var(--gold));
+  }
+  .gold-glow {
+    box-shadow: 0 0 24px hsl(var(--gold-glow) / 0.35);
+  }
+  .card-luxury {
+    @apply rounded-2xl border border-border/80 bg-card/90 backdrop-blur-sm;
+  }
+  .chip-vibe {
+    @apply rounded-full border border-border px-4 py-2 text-sm transition-all;
+  }
+  .chip-vibe-active {
+    @apply border-primary bg-primary text-primary-foreground gold-glow;
   }
 }
