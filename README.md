@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ShaadiPlan — Indian Wedding Planning App
 
-## Getting Started
+A Next.js 14 slice for Indian couples: multi-step intake, AI budget recommendations, persisted plans via API, and a budget tracker with payment logging.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **4-step intake form** — wedding date, guests, city/venue, budget bracket (₹), top 2 priorities
+- **AI recommendations** — `POST /api/recommend` calls OpenAI with structured JSON output; optional SSE streaming with typing effect
+- **Persisted plans** — Supabase Postgres; reload via `GET /api/recommendations/[id]` (no client-side Supabase)
+- **Budget tracker** — per-category allocations, spent, balance; log payments via `POST /api/payments`
+
+## Tech stack
+
+- Next.js 14 (App Router)
+- Supabase (Postgres)
+- OpenAI `gpt-4o-mini`
+- Tailwind CSS + shadcn-style UI components
+- Zod validation
+
+## Prerequisites
+
+- Node.js 18+
+- [Supabase](https://supabase.com) project
+- [OpenAI](https://platform.openai.com) API key
+
+## Setup
+
+1. **Clone and install**
+  ```bash
+   npm install
+  ```
+2. **Environment variables**
+  Copy `.env.example` to `.env.local`:
+   Use the **service role** key (Project Settings → API). It is server-only and never exposed to the browser.
+3. **Database migration**
+  In the Supabase SQL Editor, run:
+   `[supabase/migrations/001_initial.sql](supabase/migrations/001_initial.sql)`
+4. **Run locally**
+  ```bash
+   npm run dev
+  ```
+   Open [http://localhost:3000](http://localhost:3000).
+
+## API routes
+
+
+| Method | Path                        | Description                                                     |
+| ------ | --------------------------- | --------------------------------------------------------------- |
+| `POST` | `/api/recommend`            | Validate intake, call LLM, save to DB. Add `?stream=1` for SSE. |
+| `GET`  | `/api/recommendations/[id]` | Return intake, recommendations, payments, budget summary        |
+| `POST` | `/api/payments`             | Log a payment; returns updated `budget_summary`                 |
+
+
+## Design decisions
+
+1. **No client Supabase** — All DB access uses the service role in API routes. The frontend only talks to `/api/`*, which keeps keys safe and matches the assignment requirement.
+2. **Budget brackets → numeric cap** — Couples pick human-readable brackets; the server maps them to `budget_inr` for consistent LLM allocation (see `src/lib/budget.ts`).
+3. **Normalized `recommendations` table** — Easier per-category budget math than storing a JSON blob on `intakes`.
+4. **LLM reliability** — `response_format: json_object`, Zod validation, one automatic retry with error feedback, and proportional scaling if allocations exceed budget.
+5. **Reload without re-calling LLM** — `/plan/[id]` always hydrates from `GET /api/recommendations/[id]`. Streaming is only for the first visit after submit.
+
+## Deploy (Vercel)
+
+1. Push to GitHub and import in Vercel.
+2. Add the same env vars (no `NEXT_PUBLIC` for Supabase service key).
+3. Run the SQL migration in Supabase if not already applied.
+
+## Project structure
+
+```
+src/
+  app/              # Pages & API routes
+  components/       # Intake wizard, plan UI
+  lib/              # Validators, budget math, LLM service, Supabase admin
+supabase/migrations/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Manual test checklist
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Complete intake → recommendations appear on plan page
+- Refresh `/plan/[id]` → same data, no new OpenAI request
+- Log payment → budget summary updates
+- Invalid payment category → 400 error
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
