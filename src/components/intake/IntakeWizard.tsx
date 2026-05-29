@@ -271,8 +271,8 @@ export function IntakeWizard() {
             </div>
           </div>
 
-          <div className="card-luxury lg:col-span-2 h-48 bg-gradient-to-br from-zinc-800 to-zinc-950 flex items-end p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(43_74%_52%/0.15),transparent_50%)]" />
+          <div className="card-luxury lg:col-span-2 h-48 bg-gradient-to-br from-amber-50 to-rose-50 flex items-end p-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(32_72%_46%/0.12),transparent_50%)]" />
             <p className="text-xs uppercase tracking-[0.3em] text-gold relative z-10">Crafting memories</p>
           </div>
         </div>
@@ -327,13 +327,12 @@ export function IntakeWizard() {
                       : "border-border hover:border-primary/40"
                   )}
                 >
-                  <div className={cn("absolute inset-0 bg-gradient-to-t", v.gradient)} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+                  <div className={cn("absolute inset-0 bg-gradient-to-br", v.gradient)} />
+                  <div className="absolute bottom-0 left-0 right-0 p-5 z-10 bg-white/80 backdrop-blur-sm">
                     <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">
                       {v.tagline}
                     </span>
-                    <p className="font-serif text-xl mt-1">{v.name}</p>
+                    <p className="font-serif text-xl mt-1 text-foreground">{v.name}</p>
                   </div>
                 </button>
               ))}

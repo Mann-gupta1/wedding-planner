@@ -19,11 +19,25 @@ export const intakeSchema = z.object({
 
 export type IntakeInput = z.infer<typeof intakeSchema>;
 
+export const vendorSuggestionSchema = z.object({
+  vendor_name: z.string().min(2).max(120),
+  quoted_price_inr: z.number().int().positive(),
+  highlight: z.string().max(150).optional(),
+});
+
+export type VendorSuggestionItem = z.infer<typeof vendorSuggestionSchema>;
+
 export const recommendationItemSchema = z.object({
   vendor_category: z.string().min(1),
   priority_rank: z.number().int().min(1).max(10),
   suggested_budget_inr: z.number().int().min(0),
   rationale: z.string().min(10).max(500),
+  vendors: z.array(vendorSuggestionSchema).min(2).max(3),
+});
+
+export const selectVenueSchema = z.object({
+  intake_id: z.string().uuid(),
+  vendor_suggestion_id: z.string().uuid(),
 });
 
 export const recommendationsResponseSchema = z.object({

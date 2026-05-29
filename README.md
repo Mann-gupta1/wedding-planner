@@ -5,7 +5,8 @@ A Next.js 14 slice for Indian couples: multi-step intake, AI budget recommendati
 ## Features
 
 - **4-step intake form** — wedding date, guests, city/venue, budget bracket (₹), top 2 priorities
-- **AI recommendations** — `POST /api/recommend` calls Gemini with structured JSON output; optional SSE streaming with typing effect
+- **AI recommendations** — Gemini suggests 2–3 vendors per category with quoted prices (e.g. venues at ₹8L / ₹10L / ₹12L)
+- **Venue lock** — Pick a venue to lock budget; remaining categories recalculate automatically
 - **Persisted plans** — Supabase Postgres; reload via `GET /api/recommendations/[id]` (no client-side Supabase)
 - **Budget tracker** — per-category allocations, spent, balance; log payments via `POST /api/payments`
 
@@ -49,6 +50,7 @@ A Next.js 14 slice for Indian couples: multi-step intake, AI budget recommendati
 | `POST` | `/api/recommend`            | Validate intake, call LLM, save to DB. Add `?stream=1` for SSE. |
 | `GET`  | `/api/recommendations/[id]` | Return intake, recommendations, payments, budget summary        |
 | `POST` | `/api/payments`             | Log a payment; returns updated `budget_summary`                 |
+| `POST` | `/api/select-venue`         | Lock budget to a chosen venue vendor quote                      |
 
 
 ## Design decisions

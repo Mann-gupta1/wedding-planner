@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { RecommendationsList } from "./RecommendationsList";
+import { VenuePicker } from "./VenuePicker";
 import { RecommendationStream } from "./RecommendationStream";
 import { BudgetSummary } from "./BudgetSummary";
 import { LogPaymentForm } from "./LogPaymentForm";
@@ -142,6 +143,9 @@ export function PlanView({ planId, defaultView = "concierge" }: PlanViewProps) {
     BUDGET_BRACKETS.find((b) => b.id === plan.intake.budget_bracket)?.title ??
     plan.intake.budget_bracket;
 
+  const venueVendors =
+    plan.recommendations.find((r) => r.vendor_category === "Venue")?.vendors ?? [];
+
   return (
     <div className="max-w-6xl mx-auto px-4 lg:px-8 py-8 pb-16">
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
@@ -208,12 +212,23 @@ export function PlanView({ planId, defaultView = "concierge" }: PlanViewProps) {
 
       {view === "concierge" ? (
         <section className="space-y-8">
+          <VenuePicker
+            planId={planId}
+            vendors={venueVendors}
+            locked={plan.venue_locked}
+            selectedVendorId={plan.intake.selected_venue_vendor_id}
+            onLocked={(updated) => setPlan(updated)}
+          />
           <div>
-            <h2 className="font-serif text-2xl mb-2">AI Curated Vendor Insights</h2>
+            <h2 className="font-serif text-2xl mb-2">Vendor options by category</h2>
             <p className="text-sm text-muted-foreground mb-6">
-              Priorities: {plan.intake.priorities.join(" · ")}
+              Priorities: {plan.intake.priorities.join(" · ")} · Each category shows 2–3 quotes based
+              on your guest count and budget.
             </p>
-            <RecommendationsList recommendations={plan.recommendations} />
+            <RecommendationsList
+              recommendations={plan.recommendations}
+              venueLocked={plan.venue_locked}
+            />
           </div>
         </section>
       ) : (

@@ -44,12 +44,12 @@ export const BUDGET_BRACKETS = [
 export type BudgetBracketId = (typeof BUDGET_BRACKETS)[number]["id"];
 
 export const VENUE_TYPES = [
-  { name: "Banquet hall", tagline: "Classic elegance", gradient: "from-amber-900/40 to-zinc-900" },
-  { name: "Farmhouse", tagline: "Chic rustic", gradient: "from-emerald-900/40 to-zinc-900" },
-  { name: "Hotel", tagline: "Urban luxury", gradient: "from-slate-700/50 to-zinc-900" },
-  { name: "Destination", tagline: "Wanderlust", gradient: "from-blue-900/40 to-zinc-900" },
-  { name: "Temple / traditional", tagline: "Sacred heritage", gradient: "from-orange-900/40 to-zinc-900" },
-  { name: "Outdoor / garden", tagline: "Botanical bliss", gradient: "from-green-900/40 to-zinc-900" },
+  { name: "Banquet hall", tagline: "Classic elegance", gradient: "from-amber-100 to-orange-50" },
+  { name: "Farmhouse", tagline: "Chic rustic", gradient: "from-emerald-100 to-green-50" },
+  { name: "Hotel", tagline: "Urban luxury", gradient: "from-slate-100 to-gray-50" },
+  { name: "Destination", tagline: "Wanderlust", gradient: "from-sky-100 to-blue-50" },
+  { name: "Temple / traditional", tagline: "Sacred heritage", gradient: "from-orange-100 to-amber-50" },
+  { name: "Outdoor / garden", tagline: "Botanical bliss", gradient: "from-lime-100 to-emerald-50" },
 ] as const;
 
 export const VENUE_TYPE_NAMES = VENUE_TYPES.map((v) => v.name);

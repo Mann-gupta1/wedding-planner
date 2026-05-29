@@ -13,20 +13,29 @@ Output ONLY valid JSON with this exact shape:
       "vendor_category": "string",
       "priority_rank": number,
       "suggested_budget_inr": number,
-      "rationale": "string"
+      "rationale": "string",
+      "vendors": [
+        {
+          "vendor_name": "string",
+          "quoted_price_inr": number,
+          "highlight": "string (optional short tag e.g. Best value, Premium)"
+        }
+      ]
     }
   ]
 }
 
 Rules:
 - Include 6 to 8 vendor categories from: Venue, Catering, Photography, Videography, Décor, Entertainment, Outfits, Mehendi, Invitations, Makeup & styling, Transportation, Miscellaneous
-- priority_rank: 1 = highest priority for booking, unique ranks 1 through N
-- suggested_budget_inr: integers in INR; sum must be <= ${budgetInr} (leave 2-5% buffer unallocated is fine)
-- Boost allocations for the couple's stated top 2 priorities
+- For EACH category include exactly 2 or 3 realistic Indian vendor options in "vendors"
+- vendor quoted_price_inr must be integers in INR, spread across a sensible range for that category (e.g. Venue for ${intake.guest_count} guests in ${intake.city}: three options like 8L, 10L, 12L if category allocation is ~10L)
+- suggested_budget_inr for a category should be near the middle of its vendor price range
+- Sum of all suggested_budget_inr must be <= ${budgetInr} (2-5% buffer unallocated is fine)
+- Boost allocations for top 2 priorities: ${intake.priorities.join(", ")}
 - Scale Catering with guest count (${intake.guest_count} guests)
-- Adjust for venue type "${intake.venue_type}" (e.g. destination weddings need more travel/venue; banquet halls need strong venue + catering)
-- City context: ${intake.city}, India
-- Rationale: 1-2 practical sentences, India-specific, no markdown
+- Venue type: "${intake.venue_type}" — venue vendors must match this style
+- City: ${intake.city}, India — use plausible local-sounding vendor names
+- Rationale: 1-2 practical sentences, India-specific
 - Use vendor_category names exactly as listed above`;
 
   const user = `Wedding date: ${intake.wedding_date}

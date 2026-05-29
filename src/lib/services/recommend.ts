@@ -6,8 +6,8 @@ import {
   type IntakeInput,
   type RecommendationItem,
 } from "../validators/intake";
-import { getSupabaseAdmin } from "../supabase/admin";
 import { resolveBudgetInr } from "../budget";
+import { persistIntakeAndRecommendations } from "./persist-plan";
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
 
@@ -113,9 +113,13 @@ export async function callLLMForRecommendations(
   const normalized = result.data.recommendations.map((r) => ({
     ...r,
     vendor_category: normalizeCategory(r.vendor_category),
+    vendors: (r.vendors ?? []).map((v) => ({
+      ...v,
+      vendor_name: v.vendor_name.trim(),
+    })),
   }));
 
-  return scaleAllocations(normalized, budgetInr);
+  return scaleAllocations(normalized, budgetInr) as RecommendationItem[];
 }
 
 export async function generateAndPersistRecommendations(
@@ -129,8 +133,6 @@ export async function generateAndPersistRecommendations(
   }
 
   const intake = parsed.data;
-  const budgetInr = resolveBudgetInr(intake.budget_bracket);
-  const supabase = getSupabaseAdmin();
 
   let recommendations: RecommendationItem[];
   try {
@@ -140,39 +142,7 @@ export async function generateAndPersistRecommendations(
     recommendations = await callLLMForRecommendations(intake, msg);
   }
 
-  const { data: intakeRow, error: intakeError } = await supabase
-    .from("intakes")
-    .insert({
-      wedding_date: intake.wedding_date,
-      guest_count: intake.guest_count,
-      city: intake.city,
-      venue_type: intake.venue_type,
-      budget_bracket: intake.budget_bracket,
-      budget_inr: budgetInr,
-      priorities: intake.priorities,
-    })
-    .select("id")
-    .single();
-
-  if (intakeError || !intakeRow) {
-    throw new Error(intakeError?.message ?? "Failed to save intake");
-  }
-
-  const recRows = recommendations.map((r) => ({
-    intake_id: intakeRow.id,
-    vendor_category: r.vendor_category,
-    priority_rank: r.priority_rank,
-    suggested_budget_inr: r.suggested_budget_inr,
-    rationale: r.rationale,
-  }));
-
-  const { error: recError } = await supabase.from("recommendations").insert(recRows);
-  if (recError) {
-    await supabase.from("intakes").delete().eq("id", intakeRow.id);
-    throw new Error(recError.message);
-  }
-
-  return { id: intakeRow.id, recommendations };
+  return persistIntakeAndRecommendations(intake, recommendations);
 }
 
 export async function streamLLMAndPersist(
@@ -208,7 +178,8 @@ export async function streamLLMAndPersist(
       recommendations = scaleAllocations(
         result.data.recommendations.map((r) => ({
           ...r,
-          vendor_category: r.vendor_category.trim(),
+          vendor_category: normalizeCategory(r.vendor_category),
+          vendors: r.vendors ?? [],
         })),
         budgetInr
       );
@@ -217,38 +188,6 @@ export async function streamLLMAndPersist(
     recommendations = await callLLMForRecommendations(intake, "Stream parse failed");
   }
 
-  const supabase = getSupabaseAdmin();
-  const { data: intakeRow, error: intakeError } = await supabase
-    .from("intakes")
-    .insert({
-      wedding_date: intake.wedding_date,
-      guest_count: intake.guest_count,
-      city: intake.city,
-      venue_type: intake.venue_type,
-      budget_bracket: intake.budget_bracket,
-      budget_inr: budgetInr,
-      priorities: intake.priorities,
-    })
-    .select("id")
-    .single();
-
-  if (intakeError || !intakeRow) {
-    throw new Error(intakeError?.message ?? "Failed to save intake");
-  }
-
-  const recRows = recommendations.map((r) => ({
-    intake_id: intakeRow.id,
-    vendor_category: r.vendor_category,
-    priority_rank: r.priority_rank,
-    suggested_budget_inr: r.suggested_budget_inr,
-    rationale: r.rationale,
-  }));
-
-  const { error: recError } = await supabase.from("recommendations").insert(recRows);
-  if (recError) {
-    await supabase.from("intakes").delete().eq("id", intakeRow.id);
-    throw new Error(recError.message);
-  }
-
-  return { id: intakeRow.id };
+  const result = await persistIntakeAndRecommendations(intake, recommendations);
+  return { id: result.id };
 }

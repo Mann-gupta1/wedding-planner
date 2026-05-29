@@ -73,10 +73,10 @@ export function computeBudgetSummary(
   };
 }
 
-export function scaleAllocations(
-  recommendations: { vendor_category: string; priority_rank: number; suggested_budget_inr: number; rationale: string }[],
+export function scaleAllocations<T extends { suggested_budget_inr: number }>(
+  recommendations: T[],
   budgetInr: number
-): typeof recommendations {
+): T[] {
   const total = recommendations.reduce((s, r) => s + r.suggested_budget_inr, 0);
   if (total <= budgetInr || total === 0) return recommendations;
 
