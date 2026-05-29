@@ -11,6 +11,7 @@ interface VenuePickerProps {
   vendors: VendorSuggestionRecord[];
   locked: boolean;
   selectedVendorId: string | null;
+  vendorsTableReady?: boolean;
   onLocked: (plan: PlanResponse) => void;
 }
 
@@ -19,6 +20,7 @@ export function VenuePicker({
   vendors,
   locked,
   selectedVendorId,
+  vendorsTableReady = true,
   onLocked,
 }: VenuePickerProps) {
   const [loading, setLoading] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function VenuePicker({
   const max = prices.length ? Math.max(...prices) : 0;
 
   async function selectVenue(vendorId: string) {
-    if (locked) return;
+    if (locked || !vendorsTableReady || vendorId.startsWith("display-")) return;
     setLoading(vendorId);
     setError(null);
     try {

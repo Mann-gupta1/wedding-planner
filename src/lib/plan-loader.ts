@@ -2,6 +2,26 @@ import { getSupabaseAdmin } from "./supabase/admin";
 import { computeBudgetSummary } from "./budget";
 import { applyVenueLock, getCategoryPriceRange } from "./budget-lock";
 import type { PlanResponse, RecommendationRecord, VendorSuggestionRecord } from "./types";
+import { isMissingVendorSuggestionsTable } from "./vendor-table";
+
+function displayVendorsFromAllocation(
+  rec: RecommendationRecord,
+  city: string
+): VendorSuggestionRecord[] {
+  const base = rec.suggested_budget_inr;
+  const spreads = [0.85, 1.0, 1.15];
+  const labels = ["Best value", "Popular pick", "Premium"];
+  return spreads.map((m, i) => ({
+    id: `display-${rec.id}-${i}`,
+    intake_id: rec.intake_id,
+    recommendation_id: rec.id,
+    vendor_category: rec.vendor_category,
+    vendor_name: `${city} ${rec.vendor_category} ${["A", "B", "C"][i]}`,
+    quoted_price_inr: Math.max(10000, Math.round(base * m)),
+    highlight: labels[i],
+    created_at: rec.created_at,
+  }));
+}
 
 export async function loadPlanById(intakeId: string): Promise<PlanResponse | null> {
   const supabase = getSupabaseAdmin();
@@ -28,7 +48,8 @@ export async function loadPlanById(intakeId: string): Promise<PlanResponse | nul
     .eq("intake_id", intakeId)
     .order("quoted_price_inr", { ascending: true });
 
-  if (vendorError) throw new Error(vendorError.message);
+  const vendorsTableMissing = Boolean(vendorError && isMissingVendorSuggestionsTable(vendorError));
+  if (vendorError && !vendorsTableMissing) throw new Error(vendorError.message);
 
   const { data: payments, error: payError } = await supabase
     .from("payments")
@@ -48,7 +69,10 @@ export async function loadPlanById(intakeId: string): Promise<PlanResponse | nul
   );
 
   let enrichedRecs: RecommendationRecord[] = (recommendations ?? []).map((rec) => {
-    const categoryVendors = vendorsByCategory[rec.vendor_category] ?? [];
+    let categoryVendors = vendorsByCategory[rec.vendor_category] ?? [];
+    if (categoryVendors.length === 0 && vendorsTableMissing) {
+      categoryVendors = displayVendorsFromAllocation(rec, intake.city);
+    }
     const range = getCategoryPriceRange(categoryVendors);
     return {
       ...rec,
@@ -101,5 +125,6 @@ export async function loadPlanById(intakeId: string): Promise<PlanResponse | nul
     budget_summary,
     venue_locked,
     remaining_after_venue_inr,
+    vendors_table_ready: !vendorsTableMissing,
   };
 }

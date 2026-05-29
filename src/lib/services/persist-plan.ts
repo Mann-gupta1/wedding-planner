@@ -2,6 +2,7 @@ import type { RecommendationItem } from "../validators/intake";
 import { getSupabaseAdmin } from "../supabase/admin";
 import type { IntakeInput } from "../validators/intake";
 import { resolveBudgetInr } from "../budget";
+import { isMissingVendorSuggestionsTable, MIGRATION_002_HINT } from "../vendor-table";
 
 function ensureVendors(rec: RecommendationItem, city: string): RecommendationItem {
   if (rec.vendors && rec.vendors.length >= 2) return rec;
@@ -87,6 +88,11 @@ export async function persistIntakeAndRecommendations(
     const { error: vendorError } = await supabase.from("vendor_suggestions").insert(vendorRows);
     if (vendorError) {
       await supabase.from("intakes").delete().eq("id", intakeRow.id);
+      if (isMissingVendorSuggestionsTable(vendorError)) {
+        throw new Error(
+          `Database migration required for vendor suggestions. ${MIGRATION_002_HINT}`
+        );
+      }
       throw new Error(vendorError.message);
     }
   }

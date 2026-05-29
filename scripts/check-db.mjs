@@ -11,7 +11,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
   auth: { persistSession: false },
 });
 
-const tables = ["intakes", "recommendations", "payments"];
+const tables = ["intakes", "recommendations", "payments", "vendor_suggestions"];
 for (const t of tables) {
   const { error } = await supabase.from(t).select("id").limit(1);
   console.log(t + ":", error ? `MISSING (${error.code})` : "OK");

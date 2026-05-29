@@ -56,4 +56,5 @@ export interface PlanResponse {
   budget_summary: BudgetSummary;
   venue_locked: boolean;
   remaining_after_venue_inr: number | null;
+  vendors_table_ready?: boolean;
 }

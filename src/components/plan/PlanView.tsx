@@ -210,6 +210,16 @@ export function PlanView({ planId, defaultView = "concierge" }: PlanViewProps) {
         ))}
       </div>
 
+      {plan.vendors_table_ready === false && (
+        <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+          <p className="font-semibold">Database migration needed</p>
+          <p className="mt-1">
+            Run <code className="bg-white px-1 rounded">supabase/migrations/002_vendors_and_venue_lock.sql</code>{" "}
+            in Supabase SQL Editor, then submit a new intake to save vendor quotes and lock venue budget.
+          </p>
+        </div>
+      )}
+
       {view === "concierge" ? (
         <section className="space-y-8">
           <VenuePicker
@@ -217,6 +227,7 @@ export function PlanView({ planId, defaultView = "concierge" }: PlanViewProps) {
             vendors={venueVendors}
             locked={plan.venue_locked}
             selectedVendorId={plan.intake.selected_venue_vendor_id}
+            vendorsTableReady={plan.vendors_table_ready !== false}
             onLocked={(updated) => setPlan(updated)}
           />
           <div>
